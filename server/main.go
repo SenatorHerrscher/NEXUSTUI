@@ -10,26 +10,26 @@ import (
 )
 
 func main() {
-	fmt.Println("🚀 NexusTUI Go Sunucusu Baslatiliyor...")
+	fmt.Println("🚀 Starting NexusTUI Go Server...")
 
-	// 1. Veritabani (pgx/v5 pgxpool)
+	// 1. Database (pgx/v5 pgxpool)
 	if err := Database.InitDb(); err != nil {
-		fmt.Printf("⚠️  Veritabani uyarisi: %v\n", err)
+		fmt.Printf("⚠️  Database warning: %v\n", err)
 	}
 
-	// 2. Hub ve Handler baslat
+	// 2. Start Hub and Handler
 	serverHub := Hub.NewHub()
 	tcpHandler := Handler.NewTCPHandler(serverHub)
 
-	// 3. Port 9000 TCP Soketini ac
+	// 3. Bind to Port 9000 TCP Socket
 	listener, err := net.Listen("tcp", "0.0.0.0:9000")
 	if err != nil {
-		panic(fmt.Sprintf("Port 9000 dinlenemedi: %v", err))
+		panic(fmt.Sprintf("Failed to bind port 9000: %v", err))
 	}
 	defer listener.Close()
 
-	fmt.Println("🟢 NexusTUI Santrali PORT 9000'de DINLEMEDE!")
-	fmt.Println("   Baglanmak icin: nc 192.168.1.11 9000")
+	fmt.Println("🟢 NexusTUI Hub LISTENING ON PORT 9000!")
+	fmt.Println("   To connect: nc 192.168.1.11 9000")
 
 	// 4. Sonsuz dongude baglantilari karsila
 	for {

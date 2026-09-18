@@ -9,29 +9,30 @@
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Linux](https://img.shields.io/badge/Linux-CachyOS%20%7C%20Wayland-1793D1?style=for-the-badge&logo=archlinux&logoColor=white)
 
-**Sıfır GUI ayak izine sahip, terminal tabanlı, ultra düşük gecikmeli yerel ağ (LAN) cihaz yönetim ve senkronizasyon merkezi.**  
-*KDE Connect'in Tiling Window Manager (Hyprland / Sway) ve CachyOS / Arch Linux kullanıcıları için tasarlanmış yüksek performanslı terminal alternatifi.*
+**Zero-GUI footprint, terminal-native, ultra-low latency local network (LAN) device sync & wireless command hub.**  
+*A lightweight, high-performance terminal alternative to KDE Connect designed for Tiling Window Managers (Hyprland / Sway) and Arch / CachyOS users.*
 
 </div>
 
 ---
 
-## 🎯 Neden NexusTUI?
+## 🎯 Why NexusTUI?
 
-Geleneksel araçlar (KDE Connect, GSConnect vb.):
-* 150-200 MB RAM tüketir, arkada ağır Qt/C++ GUI servisleri çalıştırır.
-* Telefona 50 MB'lık üçüncü parti uygulamalar kurdurur ve pil tüketir.
-* Gerçek 60 FPS ekran yansıtma yapamaz.
+Traditional cross-device suites (KDE Connect, GSConnect, etc.):
+* Consume 150–200 MB of RAM with heavy Qt/C++ background daemons.
+* Force installing bloated 50 MB mobile apps that drain battery in the background.
+* Lack hardware-accelerated 60 FPS screen mirroring and direct audio forwarding.
 
-**NexusTUI Felsefesi:**
-* **Telefona Sıfır APK:** Telefona özel hiçbir uygulama kurulmaz; Android'in yerel ADB Wi-Fi ve dahili `nc` araçlarıyla çalışır.
-* **15 MB Toplam Bellek:** Go santrali (~8 MB) + Rust TUI (~6 MB) ile minimum sistem kaynağı.
-* **Tek Komutla Başlatma:** Sadece Rust istemcisini çalıştırmanız yeterlidir; Go sunucusunu arka planda kendisi uyandırır ve yönetir.
-* **Kalıcı Hafıza:** Geçici bellekte kaybolan soket verileri yerine tüm cihaz ve mesaj trafiği **PostgreSQL** üzerinde saklanır.
+**The NexusTUI Philosophy:**
+* **Zero Mobile APK:** No third-party apps required on your phone; leverages native Android wireless ADB and built-in socket tools.
+* **< 15 MB Total Memory Footprint:** Go socket hub (~8 MB) + Rust TUI dashboard (~6 MB) for maximum efficiency.
+* **Battery Saver Wireless Mirroring:** Physical phone screen remains completely **OFF** during mirroring (`--turn-screen-off`), streaming directly to your monitor while routing all phone audio straight to your PC speakers/headphones.
+* **Single-Command Startup:** Launching the Rust TUI automatically detects and starts the Go server backend in the background if it is not already running.
+* **ACID Persistence:** Socket history and device registries persist into **PostgreSQL** via high-throughput connection pools (`pgxpool`).
 
 ---
 
-## 🏗️ Mimari Şema
+## 🏗️ Architecture
 
 ```text
                ┌──────────────────────────────────────────────┐
@@ -42,70 +43,71 @@ Geleneksel araçlar (KDE Connect, GSConnect vb.):
                          pgxpool.Pool │ (127.0.0.1:5432)
                                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                 GO MERKEZ SUNUCUSU (:9000)                  │
-│  - Raw TCP Soket Santrali (Database, Hub, Handler)          │
-│  - Non-blocking Broadcast & Asenkron DB Persistansı         │
+│                 GO CENTRAL SERVER (:9000)                   │
+│  - Raw TCP Socket Hub (Database, Hub, Handler)              │
+│  - Non-blocking Broadcast & Async Database Persistence      │
 └──────────────▲──────────────────────▲─────────────────────▲─┘
                │                      │                     │
       TCP      │             TCP      │            TCP      │
 ┌──────────────▼──────┐ ┌─────────────▼───────┐ ┌───────────▼───────────┐
-│     RUST TUI        │ │ XIAOMI / ANDROID    │ │     TABLET / 2. PC    │
-│ (PC Terminal Paneli)│ │ (192.168.1.50)      │ │ (nc / Raw Socket)     │
-│ - Ratatui Gösterge  │ └─────────────────────┘ └───────────────────────┘
-│ - [↑/↓] Cihaz Seç   │            │
-│ - [F2] 60FPS Stream │◄───────────┘
-│ - [F3] Hızlı Gönder │  Kablosuz ADB (:5555) H.265 60 FPS Video Akışı
-│ - [F4] Telefondan Al│
+│     RUST TUI        │ │ XIAOMI / ANDROID    │ │   TABLET / 2ND PC     │
+│ (PC Terminal Panel) │ │ (192.168.1.50)      │ │ (nc / Raw Socket)     │
+│ - Ratatui Dashboard │ └─────────────────────┘ └───────────────────────┘
+│ - [↑/↓] Select Dev  │            │
+│ - [F2] 60FPS Mirror │◄───────────┘
+│ - [F3] Quick Send   │  Wireless ADB (:5555) H.265 60 FPS Video Stream
+│ - [F4] Pull to PC   │  + Screen-Off Battery Saver + Direct PC Audio
 └─────────────────────┘
 ```
 
 ---
 
-## ✨ Öne Çıkan Özellikler
+## ✨ Features
 
-* **🚀 60 FPS H.265 Kablosuz Ekran Yansıtma (`F2`):** `scrcpy 4.1` motoruyla telefonun GPU donanım encoder'ı tetiklenir, 30ms jitter buffer ile takılmasız Full HD yayın monitöre gelir.
-* **📁 Açılır Pencereli Hızlı Dosya Gönderici (`F3`):** Terminalde elle dosya yolu yazmak yerine `F3` tuşuna basıp `Downloads`, `Pictures`, `Documents` klasörlerinden numaraya basarak dosyayı telefona fırlatın.
-* **📥 Telefondan Dosya Çekme (`F4`):** Telefondaki en güncel dosyaları listeleyip tek tuşla PC `~/Downloads/` klasörüne indirin.
-* **🖼️ Otomatik Android Galeri İndeksleme:** Gönderilen resimler telefonda `/sdcard/Download/NexusTUI/` klasörüne yazılır ve anında `MEDIA_SCANNER_SCAN_FILE` ile tetiklenerek Galeri uygulamasında **NexusTUI** albümünde belirir.
-* **🔔 Android Sistem Bildirimleri:** PC'den gönderilen mesajlar telefonda sesli ve titreşimli resmi Android bildirimi olarak patlar.
-* **🚨 İzole Hata Paneli:** Alt süreçlerin (scrcpy, adb) çıktıları terminal ekranını bozmaz; sağ alttaki özel teşhis logunda toplanır.
+* **🚀 60 FPS H.265 Mirroring + Screen-Off & PC Audio (`F2`):** Powered by `scrcpy 4.1` with hardware H.265 encoding. Automatically powers **off** the physical phone display to conserve battery while keeping the device active and streaming crystal-clear audio directly to PC speakers.
+* **📁 Modal Quick File Sender (`F3`):** No manual file paths required. Press `F3` to pop up an interactive picker for `Downloads`, `Pictures`, `Documents`, and `Desktop` — press `[1-9]` to beam the file immediately to the phone.
+* **📥 Pull Files from Phone (`F4`):** Displays recent files in the phone's download directory and pulls them directly into `~/Downloads/` on your PC with a single keystroke.
+* **🖼️ Instant Android MediaStore Indexing:** Transferred photos and videos are stored in `/sdcard/Download/NexusTUI/` and instantly broadcast to Android's `MEDIA_SCANNER_SCAN_FILE` intent, showing up immediately in the phone Gallery under the **NexusTUI** album.
+* **🔔 Native Android Push Notifications:** Messages and file alerts trigger audible and tactile system push notifications on Android (`cmd notification post`).
+* **🚨 Isolated Diagnostics Window:** Subprocess outputs (`adb`, `scrcpy`) are piped directly to an isolated red system log panel, preventing terminal buffer flicker.
 
 ---
 
-## ⌨️ Klavye Kısayolları
+## ⌨️ Keybindings
 
-| Tuş | Fonksiyon |
+| Key | Action |
 | :--- | :--- |
-| **`↑` / `↓`** | Bağlı cihazlar listesinde gezinme |
-| **`F2`** | Seçili cihazın ekranını kablosuz olarak monitöre yansıt (`scrcpy`) |
-| **`F3`** | Hızlı Dosya Gönderici modal menüsünü aç (`[1-4]` klasör seç, `[1-9]` dosya gönder) |
-| **`F4`** | Telefondan dosya çekme modal menüsünü aç (`[1-8]` ile PC'ye indir) |
-| **`PgUp` / `PgDn`** | Canlı akış ve pano geçmişini yukarı/aşağı kaydır |
-| **`Enter`** | Mesaj gönder (veya `/mirror`, `/send <yol>`, `/pull <dosya>`) |
-| **`Esc`** | Açık menüyü kapat veya NexusTUI'den temiz çıkış yap |
+| **`↑` / `↓`** | Navigate connected devices list |
+| **`F2`** | Wireless mirror with phone screen OFF and PC audio routed |
+| **`F3`** | Open Quick File Sender modal (`[1-4]` folder, `[1-9]` send file) |
+| **`F4`** | Open Pull File modal (`[1-8]` download file to PC) |
+| **`PgUp` / `PgDn`** | Scroll live messages and clipboard history |
+| **`Enter`** | Send chat message (or execute `/mirror`, `/send <path>`, `/pull <file>`) |
+| **`Esc`** | Close open modal popup or cleanly exit NexusTUI |
 
 ---
 
-## 🚀 Hızlı Başlangıç
+## 🚀 Quick Start
 
-### 1. Depoyu Klonlayın
+### 1. Clone Repository
 ```bash
 git clone https://github.com/SenatorHerrscher/NexusTUI.git
 cd NexusTUI
 ```
 
-### 2. Backend Katmanını Başlatın (Docker Compose)
+### 2. Start Database Backend
 ```bash
 docker compose up -d
 ```
 
-### 3. Rust TUI İstemcisini Çalıştırın
+### 3. Launch NexusTUI
 ```bash
-cd tui
+# Launch directly from repository root
 cargo run --release
 ```
+*The Rust client will automatically verify and start the Go server in the background if it is not already running.*
 
 ---
 
-## 📄 Lisans
+## 📄 License
 MIT License © 2026 Arda Serbest (SenatorHerrscher)

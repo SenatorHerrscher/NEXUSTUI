@@ -122,7 +122,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut net_client = match net::NetworkClient::connect("127.0.0.1:9000") {
         Ok(client) => client,
         Err(e) => {
-            eprintln!("❌ Go sunucusuna baglanilamadi: {}", e);
+            eprintln!("❌ Failed to connect to Go server: {}", e);
             return Ok(());
         }
     };
@@ -140,7 +140,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "Xiaomi Mi 11 Lite (192.168.1.50)".to_string(),
     ];
     let mut errors: Vec<String> = vec![
-        "ℹ️  Sistem hazir. Dosyalar /Download/NexusTUI/ klasorune aktarilir.".to_string(),
+        "ℹ️  System ready. Transferred files are stored in /sdcard/Download/NexusTUI/".to_string(),
     ];
     let mut selected_device_idx: usize = 1;
     let mut msg_scroll: usize = 0;
@@ -148,14 +148,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let (err_tx, err_rx) = mpsc::channel::<String>();
 
-    // 1. TELEFONA BILDIRIM GONDER (Net okunabilir metin)
+    // 1. SEND PHONE NOTIFICATION
     let send_phone_notification = |text: String| {
         thread::spawn(move || {
             let _ = Command::new("adb")
                 .args([
                     "-s", "192.168.1.50:5555",
                     "shell", "cmd", "notification", "post",
-                    "-t", "⚡ NexusTUI Mesaj",
+                    "-t", "⚡ NexusTUI Message",
                     "msg_tag",
                     &text,
                 ])
@@ -165,32 +165,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
     };
 
-    // 2. KABLOSUZ DOSYA GONDER (Tum dosyalar /sdcard/Download/NexusTUI/ altina gider)
+    // 2. WIRELESS FILE TRANSFER (/sdcard/Download/NexusTUI/)
     let send_file_to_phone = |filepath: String, tx: mpsc::Sender<String>| {
         thread::spawn(move || {
             let path = Path::new(&filepath);
             if !path.exists() {
-                let _ = tx.send(format!("❌ [DOSYA BULUNAMADI]: {}", filepath));
+                let _ = tx.send(format!("❌ [FILE NOT FOUND]: {}", filepath));
                 return;
             }
 
-            let filename = path.file_name().and_then(|n| n.to_str()).unwrap_or("dosya");
+            let filename = path.file_name().and_then(|n| n.to_str()).unwrap_or("file");
             let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
             let is_media = matches!(ext.as_str(), "jpg" | "jpeg" | "png" | "webp" | "gif" | "mp4");
 
-            // Standart tek klasor: Her sey /sdcard/Download/NexusTUI/ altina!
             let dest_folder = "/sdcard/Download/NexusTUI/";
 
             let _ = tx.send(format!("📤 [TRANSFER]: {} -> Download/NexusTUI/...", filename));
 
-            // Klasor yoksa olustur
             let _ = Command::new("adb")
                 .args(["-s", "192.168.1.50:5555", "shell", "mkdir", "-p", dest_folder])
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .status();
 
-            // Dosyayi gonder
             let status = Command::new("adb")
                 .args([
                     "-s", "192.168.1.50:5555",
@@ -205,9 +202,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             match status {
                 Ok(s) if s.success() => {
                     let dest_file = format!("{}{}", dest_folder, filename);
-                    let _ = tx.send(format!("✅ [TAMAMLANDI]: {} -> Download/NexusTUI/", filename));
+                    let _ = tx.send(format!("✅ [COMPLETED]: {} -> Download/NexusTUI/", filename));
 
-                    // Resim ise galeride aninda gorunmesi icin media scan tetikle
+                    // Trigger Android Media Scanner so it appears instantly in Gallery album
                     if is_media {
                         let scan_uri = format!("file://{}", dest_file);
                         let _ = Command::new("adb")
@@ -222,13 +219,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .spawn();
                     }
 
-                    // Bildirim firlat
-                    let notif_text = format!("{} indirilenler klasörünüze kaydedildi!", filename);
+                    // Send notification to phone
+                    let notif_text = format!("{} saved to your Download/NexusTUI folder!", filename);
                     let _ = Command::new("adb")
                         .args([
                             "-s", "192.168.1.50:5555",
                             "shell", "cmd", "notification", "post",
-                            "-t", "📥 NexusTUI Dosya Geldi",
+                            "-t", "📥 NexusTUI File Received",
                             "file_tag",
                             &notif_text,
                         ])
@@ -237,16 +234,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .spawn();
                 }
                 _ => {
-                    let _ = tx.send(format!("❌ [HATA]: {} gonderilemedi.", filename));
+                    let _ = tx.send(format!("❌ [ERROR]: Failed to transfer {}.", filename));
                 }
             }
         });
     };
 
-    // 3. TELEFONDAN DOSYA CEKME (Telefon -> PC ~/Downloads/)
+    // 3. PULL FILE FROM PHONE (Phone -> PC ~/Downloads/)
     let pull_file_from_phone = |filename: String, tx: mpsc::Sender<String>| {
         thread::spawn(move || {
-            let _ = tx.send(format!("📥 [ALINIYOR]: {} telefondan cekiliyor...", filename));
+            let _ = tx.send(format!("📥 [PULLING]: Fetching {} from phone...", filename));
             let pc_dest = "/home/senatorherscher/Downloads/";
 
             let mut status = Command::new("adb")
@@ -275,25 +272,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             match status {
                 Ok(s) if s.success() => {
-                    let _ = tx.send(format!("✅ [ALINDI]: {} -> PC ~/Downloads/", filename));
+                    let _ = tx.send(format!("✅ [RECEIVED]: {} -> PC ~/Downloads/", filename));
                 }
                 _ => {
-                    let _ = tx.send(format!("❌ [BULUNAMADI]: {} telefonda bulunamadi.", filename));
+                    let _ = tx.send(format!("❌ [NOT FOUND]: {} not found on phone.", filename));
                 }
             }
         });
     };
 
-    // 4. EKRAN YANSITMA (scrcpy)
+    // 4. SCREEN MIRRORING (scrcpy with screen-off and PC audio forwarding)
     let trigger_mirror = |target_str: &str, tx: mpsc::Sender<String>| {
         if target_str.contains("127.0.0.1") || target_str.contains("NexusTUI-PC") {
-            let _ = tx.send("❌ [HATA]: NexusTUI-PC bir telefon degildir! Lutfen '↓' ile telefonu secin.".to_string());
+            let _ = tx.send("❌ [ERROR]: NexusTUI-PC is not a phone! Please select target phone using '↓'.".to_string());
             return;
         }
 
         let ip = "192.168.1.50:5555".to_string();
         let tx_clone = tx.clone();
-        let _ = tx.send(format!("🚀 [SCRCPY 4.1]: {} (H.265, 12M, 60FPS) baslatiliyor...", ip));
+        let _ = tx.send(format!("🚀 [SCRCPY]: Starting {} (H.265, 60FPS, Screen-Off, PC Audio)...", ip));
 
         thread::spawn(move || {
             let child = Command::new("scrcpy")
@@ -304,7 +301,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .arg("--max-size=1920")
                 .arg("--max-fps=60")
                 .arg("--video-buffer=30")
+                .arg("--turn-screen-off")
                 .arg("--stay-awake")
+                .arg("--audio-source=output")
+                .arg("--audio-buffer=50")
                 .arg("--always-on-top")
                 .arg("--window-title=NexusTUI - Xiaomi Mi 11 Lite")
                 .stdout(Stdio::null())
@@ -326,8 +326,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {
         while let Some(msg) = net_client.try_recv() {
-            if (msg.contains("katildi") || msg.contains("Client added")) && msg.contains("192.168.") {
-                let dev_name = format!("Yeni Cihaz ({})", msg);
+            if (msg.contains("Client added") || msg.contains("joined") || msg.contains("katildi")) && msg.contains("192.168.") {
+                let dev_name = format!("New Device ({})", msg);
                 if !devices.contains(&dev_name) {
                     devices.push(dev_name);
                 }
@@ -503,6 +503,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
 
-    println!("👋 NexusTUI Kapatildi.");
+    println!("👋 NexusTUI Closed.");
     Ok(())
 }

@@ -54,6 +54,6 @@ func (h *Hub) BroadcastSystem(message string) {
 	defer h.mutex.RUnlock()
 
 	for conn := range h.Clients {
-		fmt.Fprintf(conn, "[SISTEM]: %s\n", message)
+		fmt.Fprintf(conn, "[SYSTEM]: %s\n", message)
 	}
 }

@@ -42,14 +42,14 @@ pub fn draw(
         ])
         .split(size);
 
-    // 1. UST BASLIK
+    // 1. HEADER
     let header_text = vec![Line::from(vec![
         Span::styled(
             " ⚡ NEXUSTUI ",
             Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD),
         ),
-        Span::raw(" LAN HUB // Port: 9000 // Host: 192.168.1.11 // Durum: "),
-        Span::styled("● AKTİF", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+        Span::raw(" LAN HUB // Port: 9000 // Host: 192.168.1.11 // Status: "),
+        Span::styled("● ACTIVE", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
     ])];
     let header = Paragraph::new(header_text).block(
         Block::default()
@@ -58,7 +58,7 @@ pub fn draw(
     );
     frame.render_widget(header, chunks[0]);
 
-    // 2. ORTA GOVDE: Sol %35 (Cihazlar), Sag %65 (Mesajlar + Hata Logu)
+    // 2. MAIN BODY: Left 35% (Devices), Right 65% (Messages + Diagnostics)
     let body_chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
@@ -67,10 +67,10 @@ pub fn draw(
         ])
         .split(chunks[1]);
 
-    // SOL: BAGLI CIHAZLAR
+    // LEFT: CONNECTED DEVICES
     let device_items: Vec<ListItem> = if devices.is_empty() {
         vec![ListItem::new(Span::styled(
-            " (Cihaz bekleniyor...)",
+            " (Waiting for devices...)",
             Style::default().fg(Color::DarkGray),
         ))]
     } else {
@@ -97,13 +97,13 @@ pub fn draw(
     };
     let devices_list = List::new(device_items).block(
         Block::default()
-            .title(" 📱 Cihazlar [↑/↓ | F2] ")
+            .title(" 📱 Devices [↑/↓ | F2] ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Cyan)),
     );
     frame.render_widget(devices_list, body_chunks[0]);
 
-    // SAG: USTTE MESAJLAR (%60), ALTTA HATA VE SISTEM LOGLARI (%40)
+    // RIGHT: TOP MESSAGES (60%), BOTTOM SYSTEM & DIAGNOSTICS LOG (40%)
     let right_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -112,14 +112,14 @@ pub fn draw(
         ])
         .split(body_chunks[1]);
 
-    // SAG UST: MESAJLAR & PANO
+    // RIGHT TOP: MESSAGES & CLIPBOARD
     let visible_msgs: Vec<ListItem> = messages
         .iter()
         .skip(msg_scroll)
         .map(|msg| {
-            let style = if msg.contains("[PANO]") || msg.contains("PANO") {
+            let style = if msg.contains("[CLIPBOARD]") || msg.contains("[PANO]") || msg.contains("CLIPBOARD") {
                 Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
-            } else if msg.contains("[SISTEM]") {
+            } else if msg.contains("[SYSTEM]") || msg.contains("[SISTEM]") {
                 Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)
             } else {
                 Style::default().fg(Color::White)
@@ -129,16 +129,16 @@ pub fn draw(
         .collect();
     let messages_list = List::new(visible_msgs).block(
         Block::default()
-            .title(format!(" 💬 Canlı Akış & Pano [PgUp/PgDn: {}] ", msg_scroll))
+            .title(format!(" 💬 Live Stream & Clipboard [PgUp/PgDn: {}] ", msg_scroll))
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Green)),
     );
     frame.render_widget(messages_list, right_chunks[0]);
 
-    // SAG ALT: HATA & SISTEM LOGLARI
+    // RIGHT BOTTOM: SYSTEM & DIAGNOSTICS LOGS
     let error_items: Vec<ListItem> = if errors.is_empty() {
         vec![ListItem::new(Span::styled(
-            " ✔️ Sistem stabil, aktif hata yok.",
+            " ✔️ System stable, no active errors.",
             Style::default().fg(Color::DarkGray),
         ))]
     } else {
@@ -150,7 +150,7 @@ pub fn draw(
             .map(|err| {
                 let style = if err.contains("❌") || err.contains("ERROR") {
                     Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)
-                } else if err.contains("⚠️") {
+                } else if err.contains("⚠️") || err.contains("warn") {
                     Style::default().fg(Color::Yellow)
                 } else if err.contains("✅") {
                     Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)
@@ -163,34 +163,34 @@ pub fn draw(
     };
     let error_list = List::new(error_items).block(
         Block::default()
-            .title(" 🚨 Sistem & Transfer Günlüğü (Log) ")
+            .title(" 🚨 System & Transfer Log ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Red)),
     );
     frame.render_widget(error_list, right_chunks[1]);
 
-    // 3. ALT GIRIS SATIRI
+    // 3. BOTTOM INPUT LINE
     let input_text = format!(" > {}", input);
     let input_widget = Paragraph::new(input_text).block(
         Block::default()
-            .title(" ⌨️  Mesaj / Komut (F3: Gönder, F4: Al, Enter: Gönder) ")
+            .title(" ⌨️  Message / Command (F3: Send, F4: Pull, Enter: Send) ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Yellow)),
     );
     frame.render_widget(input_widget, chunks[2]);
 
-    // 4. KISAYOL BARI
+    // 4. SHORTCUTS BAR
     let shortcuts = Line::from(vec![
         Span::styled(" [↑/↓] ", Style::default().fg(Color::Black).bg(Color::Cyan)),
-        Span::raw(" Seç  "),
+        Span::raw(" Select  "),
         Span::styled(" [F2] ", Style::default().fg(Color::Black).bg(Color::Green)),
-        Span::raw(" Yansıt  "),
+        Span::raw(" Mirror  "),
         Span::styled(" [F3] ", Style::default().fg(Color::Black).bg(Color::Magenta).add_modifier(Modifier::BOLD)),
-        Span::raw(" Gönder 📤  "),
+        Span::raw(" Send File 📤  "),
         Span::styled(" [F4] ", Style::default().fg(Color::Black).bg(Color::LightBlue).add_modifier(Modifier::BOLD)),
-        Span::raw(" Telefondan Al 📥  "),
+        Span::raw(" Pull File 📥  "),
         Span::styled(" [Esc] ", Style::default().fg(Color::Black).bg(Color::Red)),
-        Span::raw(" Çıkış "),
+        Span::raw(" Quit "),
     ]);
     frame.render_widget(Paragraph::new(shortcuts), chunks[3]);
 
@@ -207,12 +207,12 @@ pub fn draw(
                 ListItem::new(Span::styled(" [3] 📂 Documents  (/home/senatorherscher/Documents)", Style::default().fg(Color::Cyan))),
                 ListItem::new(Span::styled(" [4] 📂 Desktop    (/home/senatorherscher/Desktop)", Style::default().fg(Color::Cyan))),
                 ListItem::new(Span::raw("")),
-                ListItem::new(Span::styled(" 💡 İpucu: Klavyeden [1-4] basıp klasör seçin. İptal: [Esc]", Style::default().fg(Color::DarkGray))),
+                ListItem::new(Span::styled(" 💡 Hint: Press [1-4] to select directory. Cancel: [Esc]", Style::default().fg(Color::DarkGray))),
             ];
 
             let modal = List::new(items).block(
                 Block::default()
-                    .title(" 📁 Telefona Gönder: Klasör Seç [1-4] ")
+                    .title(" 📁 Send to Phone: Select Directory [1-4] ")
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
             );
@@ -223,7 +223,7 @@ pub fn draw(
             frame.render_widget(Clear, popup_area);
 
             let mut items: Vec<ListItem> = if files.is_empty() {
-                vec![ListItem::new(Span::styled(" (Bu klasörde gönderilecek dosya bulunamadı)", Style::default().fg(Color::DarkGray)))]
+                vec![ListItem::new(Span::styled(" (No files found in this directory)", Style::default().fg(Color::DarkGray)))]
             } else {
                 files
                     .iter()
@@ -239,13 +239,13 @@ pub fn draw(
 
             items.push(ListItem::new(Span::raw("")));
             items.push(ListItem::new(Span::styled(
-                " 🚀 Klavyeden [1-9] basarak dosyayı hemen telefona gönderin! [Esc: Geri]",
+                " 🚀 Press [1-9] to send file to phone immediately! [Esc: Back]",
                 Style::default().fg(Color::Green),
             )));
 
             let modal = List::new(items).block(
                 Block::default()
-                    .title(format!(" 📁 {} -> Telefona Gönder [1-9] ", folder_name))
+                    .title(format!(" 📁 {} -> Send to Phone [1-9] ", folder_name))
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
             );
@@ -256,7 +256,7 @@ pub fn draw(
             frame.render_widget(Clear, popup_area);
 
             let mut items: Vec<ListItem> = if files.is_empty() {
-                vec![ListItem::new(Span::styled(" (Telefonda dosya bulunamadı)", Style::default().fg(Color::DarkGray)))]
+                vec![ListItem::new(Span::styled(" (No files found on phone)", Style::default().fg(Color::DarkGray)))]
             } else {
                 files
                     .iter()
@@ -272,13 +272,13 @@ pub fn draw(
 
             items.push(ListItem::new(Span::raw("")));
             items.push(ListItem::new(Span::styled(
-                " 📥 Klavyeden [1-8] basarak dosyayı PC Downloads'a çekin! [Esc: İptal]",
+                " 📥 Press [1-8] to pull file to PC ~/Downloads! [Esc: Cancel]",
                 Style::default().fg(Color::Green),
             )));
 
             let modal = List::new(items).block(
                 Block::default()
-                    .title(" 📥 Telefondan Dosya Çek (Receive) [1-8] ")
+                    .title(" 📥 Pull File from Phone [1-8] ")
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(Color::LightBlue).add_modifier(Modifier::BOLD)),
             );

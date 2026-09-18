@@ -106,7 +106,7 @@ func InitDb() error {
 	}
 
 	Instance = &DBService{Pool: pool}
-	fmt.Println("🐘 PostgreSQL (pgx/v5 pgxpool) basariyla baglandi ve tablolar hazir!")
+	fmt.Println("🐘 PostgreSQL (pgx/v5 pgxpool) connected successfully and tables ready!")
 	return nil
 }
 
