@@ -1,34 +1,59 @@
-# ⚡ NexusTUI
-
 <div align="center">
 
-![Go](https://img.shields.io/badge/Go-1.24-00ADD8?style=for-the-badge&logo=go&logoColor=white)
-![Rust](https://img.shields.io/badge/Rust-2021-DEA584?style=for-the-badge&logo=rust&logoColor=black)
-![Ratatui](https://img.shields.io/badge/Ratatui-0.29-2b3137?style=for-the-badge&logo=terminal&logoColor=green)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Linux](https://img.shields.io/badge/Linux-CachyOS%20%7C%20Wayland-1793D1?style=for-the-badge&logo=archlinux&logoColor=white)
+# ⚡ NexusTUI
 
-**Zero-GUI footprint, terminal-native, ultra-low latency local network (LAN) device sync & wireless command hub.**  
-*A lightweight, high-performance terminal alternative to KDE Connect designed for Tiling Window Managers (Hyprland / Sway) and Arch / CachyOS users.*
+**Zero-GUI Footprint // Terminal-Native LAN Hub // 60 FPS Wireless Mirroring // ACID Storage**
+
+[![GitHub Stars](https://img.shields.io/github/stars/SenatorHerrscher/NEXUSTUI?style=for-the-badge&logo=github&color=gold)](https://github.com/SenatorHerrscher/NEXUSTUI/stargazers)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Rust](https://img.shields.io/badge/Rust-2021-DEA584?style=for-the-badge&logo=rust&logoColor=black)](https://www.rust-lang.org/)
+[![Go](https://img.shields.io/badge/Go-1.24-00ADD8?style=for-the-badge&logo=go&logoColor=white)](https://go.dev/)
+[![Ratatui](https://img.shields.io/badge/Ratatui-0.29-2b3137?style=for-the-badge&logo=terminal&logoColor=green)](https://ratatui.rs/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Linux](https://img.shields.io/badge/Linux-CachyOS%20%7C%20Wayland-1793D1?style=for-the-badge&logo=archlinux&logoColor=white)](https://cachyos.org/)
+
+<br />
+
+<img src="assets/demo.png" alt="NexusTUI Live Demo" width="920" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+
+*NexusTUI running on Linux CachyOS (Wayland) alongside a low-latency 60 FPS H.265 wireless mirror of a Xiaomi Mi 11 Lite with physical screen powered off.*
 
 </div>
 
 ---
 
-## 🎯 Why NexusTUI?
+## 💡 Why NexusTUI?
 
-Traditional cross-device suites (KDE Connect, GSConnect, etc.):
-* Consume 150–200 MB of RAM with heavy Qt/C++ background daemons.
-* Force installing bloated 50 MB mobile apps that drain battery in the background.
-* Lack hardware-accelerated 60 FPS screen mirroring and direct audio forwarding.
+Mainstream cross-device suites like **KDE Connect** and **GSConnect** were built for monolithic desktop environments. For users of tiling window managers (**Hyprland**, **Sway**, **i3**) and lightweight Linux distributions, they present substantial bloat:
 
-**The NexusTUI Philosophy:**
-* **Zero Mobile APK:** No third-party apps required on your phone; leverages native Android wireless ADB and built-in socket tools.
-* **< 15 MB Total Memory Footprint:** Go socket hub (~8 MB) + Rust TUI dashboard (~6 MB) for maximum efficiency.
-* **Battery Saver Wireless Mirroring:** Physical phone screen remains completely **OFF** during mirroring (`--turn-screen-off`), streaming directly to your monitor while routing all phone audio straight to your PC speakers/headphones.
-* **Single-Command Startup:** Launching the Rust TUI automatically detects and starts the Go server backend in the background if it is not already running.
-* **ACID Persistence:** Socket history and device registries persist into **PostgreSQL** via high-throughput connection pools (`pgxpool`).
+* ❌ **Resource Hungry:** 150–250 MB RAM footprint tied to Qt/C++ background service daemons.
+* ❌ **Mobile Bloat:** Require installing a ~50 MB APK on your phone that constantly runs battery-draining background services.
+* ❌ **No Screen Off Mirroring:** Incapable of streaming 60 FPS hardware video without keeping the physical phone display blazing hot.
+* ❌ **Volatile Sockets:** Session history and clipboard sync vanish when processes restart.
+
+### The NexusTUI Paradigm:
+
+* ✅ **Zero Mobile APK:** No third-party apps on Android. Operates entirely over native ADB Wi-Fi and Android's internal Linux toolchain.
+* ✅ **< 15 MB Total RAM:** Go TCP Socket Hub (~8 MB) + Rust TUI Client (~6 MB).
+* ✅ **Battery Saver Mirroring (`-S`):** Turns the physical phone display **completely off** during mirroring while keeping the stream active on your monitor and routing all audio to your PC speakers.
+* ✅ **ACID Persistence:** Every message, clipboard sync, and device registration is persisted into **PostgreSQL** via high-performance connection pooling (`pgxpool`).
+* ✅ **Zero Subprocess Bleed:** All background command streams (`adb`, `scrcpy`) are piped to a dedicated, isolated diagnostics viewport to eliminate terminal screen flicker.
+
+---
+
+## 📊 Benchmark Comparison
+
+| Metric | ⚡ NexusTUI | 📱 KDE Connect / GSConnect | 🔌 Scrcpy (Standalone CLI) |
+| :--- | :---: | :---: | :---: |
+| **PC Memory Footprint** | **~14 MB** | ~180 MB (Qt / DBus) | N/A (Script only) |
+| **Android APK Installed** | **0 MB (None)** | ~50 MB Background Service | None |
+| **Screen Mirroring** | **H.265 60 FPS (Hardware)** | None / Experimental 30 FPS | Manual Terminal Commands |
+| **Battery Saver Screen-Off** | **Automatic (`-S`)** | ❌ No | Flag required each run |
+| **Direct PC Audio Routing** | **Automatic (Low Latency Opus)**| Manual PipeWire loopback | Flag required each run |
+| **Interactive File Picker** | **Modal Dialogs (`F3` / `F4`)** | File manager notification | Manual path typing |
+| **Gallery Auto-Indexing** | **Automatic (`MEDIA_SCANNER`)**| Manual reboot / rescan | ❌ No |
+| **ACID History & Sync** | **PostgreSQL 16 (`pgxpool`)** | SQLite / Memory | ❌ No |
 
 ---
 
@@ -36,21 +61,21 @@ Traditional cross-device suites (KDE Connect, GSConnect, etc.):
 
 ```text
                ┌──────────────────────────────────────────────┐
-               │         POSTGRESQL (Docker Container)        │
-               │  - devices & messages (ACID, pgx/v5)         │
+               │        POSTGRESQL 16 (Docker Container)      │
+               │  - devices & messages (ACID, pgx/v5 pgxpool) │
                └──────────────────────▲───────────────────────┘
                                       │
                          pgxpool.Pool │ (127.0.0.1:5432)
                                       ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                 GO CENTRAL SERVER (:9000)                   │
-│  - Raw TCP Socket Hub (Database, Hub, Handler)              │
+│  - High-Throughput Goroutine TCP Socket Hub                 │
 │  - Non-blocking Broadcast & Async Database Persistence      │
 └──────────────▲──────────────────────▲─────────────────────▲─┘
                │                      │                     │
       TCP      │             TCP      │            TCP      │
 ┌──────────────▼──────┐ ┌─────────────▼───────┐ ┌───────────▼───────────┐
-│     RUST TUI        │ │ XIAOMI / ANDROID    │ │   TABLET / 2ND PC     │
+│     RUST TUI        │ │ ANDROID / XIAOMI    │ │   TABLET / 2ND PC     │
 │ (PC Terminal Panel) │ │ (192.168.1.50)      │ │ (nc / Raw Socket)     │
 │ - Ratatui Dashboard │ └─────────────────────┘ └───────────────────────┘
 │ - [↑/↓] Select Dev  │            │
@@ -62,52 +87,132 @@ Traditional cross-device suites (KDE Connect, GSConnect, etc.):
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-* **🚀 60 FPS H.265 Mirroring + Screen-Off & PC Audio (`F2`):** Powered by `scrcpy 4.1` with hardware H.265 encoding. Automatically powers **off** the physical phone display to conserve battery while keeping the device active and streaming crystal-clear audio directly to PC speakers.
-* **📁 Modal Quick File Sender (`F3`):** No manual file paths required. Press `F3` to pop up an interactive picker for `Downloads`, `Pictures`, `Documents`, and `Desktop` — press `[1-9]` to beam the file immediately to the phone.
-* **📥 Pull Files from Phone (`F4`):** Displays recent files in the phone's download directory and pulls them directly into `~/Downloads/` on your PC with a single keystroke.
-* **🖼️ Instant Android MediaStore Indexing:** Transferred photos and videos are stored in `/sdcard/Download/NexusTUI/` and instantly broadcast to Android's `MEDIA_SCANNER_SCAN_FILE` intent, showing up immediately in the phone Gallery under the **NexusTUI** album.
-* **🔔 Native Android Push Notifications:** Messages and file alerts trigger audible and tactile system push notifications on Android (`cmd notification post`).
-* **🚨 Isolated Diagnostics Window:** Subprocess outputs (`adb`, `scrcpy`) are piped directly to an isolated red system log panel, preventing terminal buffer flicker.
+### 🚀 1. 60 FPS Wireless Mirroring with Screen-Off & Audio Routing (`F2`)
+* **Physical Screen Power-Off:** Leveraging `scrcpy 4.1` with `--turn-screen-off` (`-S`) and `--stay-awake`. The phone's AMOLED screen remains pitch black while mirroring to your desktop, preventing OLED burn-in, overheating, and heavy battery discharge.
+* **Low Latency Audio Forwarding:** All audio output is routed straight to your Linux desktop (PipeWire / PulseAudio via SDL2) with a 50ms buffer, while the device speaker is silenced.
+* **Hardware H.265 Codec:** Encoded with the phone's native GPU encoder at 12 Mbps and a 30ms jitter buffer for seamless 60 FPS fluid playback.
+
+### 📁 2. Keyboard-Driven Modal File Transfer (`F3` & `F4`)
+* **Quick Send (`F3`):** Press `F3` to trigger a centered modal file picker. Press `[1-4]` to select a directory (`Downloads`, `Pictures`, `Documents`, `Desktop`), then press `[1-9]` to beam the file immediately to the phone over Wi-Fi.
+* **Instant Android Gallery Indexing:** Photos and videos sent to `/sdcard/Download/NexusTUI/` trigger a broadcast intent (`android.intent.action.MEDIA_SCANNER_SCAN_FILE`), making them appear instantly inside the phone's native Gallery app under the **NexusTUI** album.
+* **Pull Files (`F4`):** Lists the most recent files from the phone's download directory and downloads them directly into `~/Downloads/` on your PC with a single keystroke `[1-8]`.
+
+### 🐘 3. PostgreSQL ACID Storage
+All connection events, clipboard synchronizations (`/clip`), and messages are recorded in PostgreSQL:
+
+<div align="center">
+
+| Registered Devices (`public.devices`) | Message & Clipboard History (`public.messages`) |
+| :---: | :---: |
+| <img src="assets/db_devices.png" alt="Devices Table" width="440" /> | <img src="assets/db_messages.png" alt="Messages Table" width="440" /> |
+
+</div>
 
 ---
 
-## ⌨️ Keybindings
+## ⌨️ Hotkey Cheatsheet
 
-| Key | Action |
-| :--- | :--- |
-| **`↑` / `↓`** | Navigate connected devices list |
-| **`F2`** | Wireless mirror with phone screen OFF and PC audio routed |
-| **`F3`** | Open Quick File Sender modal (`[1-4]` folder, `[1-9]` send file) |
-| **`F4`** | Open Pull File modal (`[1-8]` download file to PC) |
-| **`PgUp` / `PgDn`** | Scroll live messages and clipboard history |
-| **`Enter`** | Send chat message (or execute `/mirror`, `/send <path>`, `/pull <file>`) |
-| **`Esc`** | Close open modal popup or cleanly exit NexusTUI |
+| Key | Mode | Description |
+| :--- | :--- | :--- |
+| **`↑` / `↓`** | Navigation | Move selection indicator (`▶`) between connected devices |
+| **`F2`** | Action | Launch 60 FPS H.265 wireless mirror with phone screen **OFF** & PC audio |
+| **`F3`** | Modal | Open Quick File Sender popup (`[1-4]` folder, `[1-9]` file) |
+| **`F4`** | Modal | Open Pull File popup (`[1-8]` download file to PC `~/Downloads/`) |
+| **`PgUp` / `PgDn`**| Navigation | Scroll live message feed and clipboard history |
+| **`Enter`** | Transmit | Broadcast message & trigger audible Android push notification |
+| **`Esc`** | Action | Close active modal dialog or cleanly terminate NexusTUI |
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Clone Repository
+### 1. Prerequisites
+Ensure you have the following installed on your Linux machine:
 ```bash
-git clone https://github.com/SenatorHerrscher/NexusTUI.git
-cd NexusTUI
+# Arch / CachyOS
+sudo pacman -S rust go docker docker-compose scrcpy android-tools
 ```
 
-### 2. Start Database Backend
+### 2. Clone Repository
+```bash
+git clone https://github.com/SenatorHerrscher/NEXUSTUI.git
+cd NEXUSTUI
+```
+
+### 3. Start Database Backend
 ```bash
 docker compose up -d
 ```
 
-### 3. Launch NexusTUI
+### 4. Connect Your Android Device Over Wi-Fi
+1. Enable **Developer Options** & **USB Debugging** on your phone.
+2. Connect phone via USB cable once and enable wireless ADB:
+   ```bash
+   adb tcpip 5555
+   ```
+3. Disconnect the USB cable and connect over Wi-Fi (replace with your phone's IP):
+   ```bash
+   adb connect 192.168.1.50:5555
+   ```
+
+### 5. Launch NexusTUI
 ```bash
-# Launch directly from repository root
 cargo run --release
 ```
-*The Rust client will automatically verify and start the Go server in the background if it is not already running.*
+*The Rust client automatically detects if the Go backend server is running and starts it in the background if necessary.*
+
+---
+
+## 📦 System-Wide Installation
+
+To install `nexustui` as a global command accessible from any terminal window:
+
+```bash
+cargo install --path tui
+```
+Or symlink the release binary into your local bin:
+```bash
+ln -sf $(pwd)/target/release/nexustui ~/.local/bin/nexustui
+```
+
+Now you can simply run:
+```bash
+nexustui
+```
+
+---
+
+## 🛠️ Project Structure
+
+```text
+NEXUSTUI/
+├── assets/                 # Showcase screenshots & demo media
+│   ├── demo.png
+│   ├── db_devices.png
+│   └── db_messages.png
+├── docker-compose.yaml     # Production PostgreSQL 16 & Server container stack
+├── Cargo.toml              # Root Cargo Workspace manifest
+├── LICENSE                 # MIT License
+├── README.md               # Documentation & specifications
+├── server/                 # Go TCP Hub Backend (:9000)
+│   ├── Database/           # pgx/v5 connection pooling, schema migrations & queries
+│   ├── Handler/            # TCP connection loop, command parsing (/nick, /clip)
+│   ├── Hub/                # Thread-safe client manager & broadcast channels
+│   ├── Dockerfile          # Multi-stage Alpine container build
+│   └── main.go             # Backend entrypoint
+└── tui/                    # Rust TUI Client (Ratatui 0.29 + Crossterm 0.28)
+    ├── Cargo.toml
+    └── src/
+        ├── main.rs         # Event loops, ADB subprocess orchestration, auto-launcher
+        ├── net.rs          # Non-blocking TCP socket reader thread
+        └── ui.rs           # Cyberpunk HUD layout, modals, and styling
+```
 
 ---
 
 ## 📄 License
-MIT License © 2026 Arda Serbest (SenatorHerrscher)
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.  
+Copyright © 2026 **Arda Serbest ([@SenatorHerrscher](https://github.com/SenatorHerrscher))**.
