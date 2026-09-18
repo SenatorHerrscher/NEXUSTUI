@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/nexustui.png" alt="NexusTUI Icon" width="130" height="130" style="border-radius: 28px; margin-bottom: 8px;" />
+
 # ⚡ NexusTUI
 
 **Zero-GUI Footprint // Terminal-Native LAN Hub // 60 FPS Wireless Mirroring // ACID Storage**
@@ -15,7 +17,7 @@
 
 <br />
 
-<img src="assets/demo.png" alt="NexusTUI Live Demo" width="920" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+<img src="assets/demo.png" alt="NexusTUI Live Demo" width="940" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
 
 *NexusTUI running on Linux CachyOS (Wayland) alongside a low-latency 60 FPS H.265 wireless mirror of a Xiaomi Mi 11 Lite with physical screen powered off.*
 
