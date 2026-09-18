@@ -75,6 +75,42 @@ fn list_phone_files() -> Vec<String> {
     files
 }
 
+fn detect_phone_device(ip_with_port: &str) -> String {
+    let clean_ip = ip_with_port.split(':').next().unwrap_or(ip_with_port);
+
+    let market_out = Command::new("adb")
+        .args(["-s", ip_with_port, "shell", "getprop", "ro.product.marketname"])
+        .output();
+    let model_out = Command::new("adb")
+        .args(["-s", ip_with_port, "shell", "getprop", "ro.product.model"])
+        .output();
+    let mfg_out = Command::new("adb")
+        .args(["-s", ip_with_port, "shell", "getprop", "ro.product.manufacturer"])
+        .output();
+
+    let market = market_out.ok().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
+    let model = model_out.ok().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
+    let mfg = mfg_out.ok().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
+
+    let display_name = if !market.is_empty() {
+        if !mfg.is_empty() && !market.to_lowercase().contains(&mfg.to_lowercase()) {
+            format!("{} {}", mfg, market)
+        } else {
+            market
+        }
+    } else if !model.is_empty() {
+        if !mfg.is_empty() && !model.to_lowercase().contains(&mfg.to_lowercase()) {
+            format!("{} {}", mfg, model)
+        } else {
+            model
+        }
+    } else {
+        "Android Device".to_string()
+    };
+
+    format!("📱 {} ({})", display_name, clean_ip)
+}
+
 fn ensure_go_server_running() {
     if TcpStream::connect("127.0.0.1:9000").is_ok() {
         return;
@@ -127,6 +163,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
+    let username = std::env::var("USER").unwrap_or_else(|_| "User".to_string());
+    let _ = net_client.send_line(&format!("/nick {}", username));
+
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
@@ -135,10 +174,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut input = String::new();
     let mut messages: Vec<String> = Vec::new();
-    let mut devices: Vec<String> = vec![
-        "NexusTUI-PC (127.0.0.1)".to_string(),
-        "Xiaomi Mi 11 Lite (192.168.1.50)".to_string(),
-    ];
+    let pc_device = format!("💻 {} (127.0.0.1)", username);
+    let phone_device = detect_phone_device("192.168.1.50:5555");
+    let mut devices: Vec<String> = vec![pc_device, phone_device];
     let mut errors: Vec<String> = vec![
         "ℹ️  System ready. Transferred files are stored in /sdcard/Download/NexusTUI/".to_string(),
     ];
@@ -283,12 +321,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 4. SCREEN MIRRORING (scrcpy with screen-off and PC audio forwarding)
     let trigger_mirror = |target_str: &str, tx: mpsc::Sender<String>| {
-        if target_str.contains("127.0.0.1") || target_str.contains("NexusTUI-PC") {
-            let _ = tx.send("❌ [ERROR]: NexusTUI-PC is not a phone! Please select target phone using '↓'.".to_string());
+        if target_str.contains("127.0.0.1") || target_str.contains("💻") {
+            let _ = tx.send("❌ [ERROR]: Cannot mirror PC! Please select target phone using '↓'.".to_string());
             return;
         }
 
-        let ip = "192.168.1.50:5555".to_string();
+        let ip = if let (Some(start), Some(end)) = (target_str.find('('), target_str.find(')')) {
+            let extracted = &target_str[start + 1..end];
+            if extracted.contains(':') {
+                extracted.to_string()
+            } else {
+                format!("{}:5555", extracted)
+            }
+        } else {
+            "192.168.1.50:5555".to_string()
+        };
+
+        let target_title = target_str.replace("📱", "").trim().to_string();
         let tx_clone = tx.clone();
         let _ = tx.send(format!("🚀 [SCRCPY]: Starting {} (H.265, 60FPS, Screen-Off, PC Audio)...", ip));
 
@@ -306,7 +355,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .arg("--audio-source=output")
                 .arg("--audio-buffer=50")
                 .arg("--always-on-top")
-                .arg("--window-title=NexusTUI - Xiaomi Mi 11 Lite")
+                .arg(format!("--window-title=NexusTUI - {}", target_title))
                 .stdout(Stdio::null())
                 .stderr(Stdio::piped())
                 .spawn();

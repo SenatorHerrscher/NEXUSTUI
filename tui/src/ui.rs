@@ -42,14 +42,23 @@ pub fn draw(
         ])
         .split(size);
 
-    // 1. HEADER
+    // 1. HEADER HUD
     let header_text = vec![Line::from(vec![
         Span::styled(
             " ⚡ NEXUSTUI ",
             Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD),
         ),
-        Span::raw(" LAN HUB // Port: 9000 // Host: 192.168.1.11 // Status: "),
-        Span::styled("● ACTIVE", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+        Span::styled(" ◈ ", Style::default().fg(Color::DarkGray)),
+        Span::styled("LAN HUB", Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+        Span::styled(" ◈ ", Style::default().fg(Color::DarkGray)),
+        Span::raw("Port: "),
+        Span::styled("9000", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+        Span::styled(" ◈ ", Style::default().fg(Color::DarkGray)),
+        Span::raw("Host: "),
+        Span::styled("192.168.1.11", Style::default().fg(Color::Cyan)),
+        Span::styled(" ◈ ", Style::default().fg(Color::DarkGray)),
+        Span::raw("Status: "),
+        Span::styled("● ONLINE", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
     ])];
     let header = Paragraph::new(header_text).block(
         Block::default()
@@ -97,7 +106,7 @@ pub fn draw(
     };
     let devices_list = List::new(device_items).block(
         Block::default()
-            .title(" 📱 Devices [↑/↓ | F2] ")
+            .title(" 📱 Connected Devices [↑/↓ | F2] ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Cyan)),
     );
@@ -152,7 +161,7 @@ pub fn draw(
                     Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)
                 } else if err.contains("⚠️") || err.contains("warn") {
                     Style::default().fg(Color::Yellow)
-                } else if err.contains("✅") {
+                } else if err.contains("✅") || err.contains("✔") {
                     Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)
                 } else {
                     Style::default().fg(Color::Cyan)
@@ -163,17 +172,17 @@ pub fn draw(
     };
     let error_list = List::new(error_items).block(
         Block::default()
-            .title(" 🚨 System & Transfer Log ")
+            .title(" 🛡️ System & Transfer Log ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Red)),
     );
     frame.render_widget(error_list, right_chunks[1]);
 
-    // 3. BOTTOM INPUT LINE
-    let input_text = format!(" > {}", input);
+    // 3. BOTTOM INPUT LINE WITH CURSOR
+    let input_text = format!(" ❯ {}█", input);
     let input_widget = Paragraph::new(input_text).block(
         Block::default()
-            .title(" ⌨️  Message / Command (F3: Send, F4: Pull, Enter: Send) ")
+            .title(" ⌨️  Command / Message (F3: Send | F4: Pull | Enter: Transmit) ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Yellow)),
     );
@@ -184,13 +193,13 @@ pub fn draw(
         Span::styled(" [↑/↓] ", Style::default().fg(Color::Black).bg(Color::Cyan)),
         Span::raw(" Select  "),
         Span::styled(" [F2] ", Style::default().fg(Color::Black).bg(Color::Green)),
-        Span::raw(" Mirror  "),
+        Span::raw(" 📱 Mirror (Screen Off)  "),
         Span::styled(" [F3] ", Style::default().fg(Color::Black).bg(Color::Magenta).add_modifier(Modifier::BOLD)),
-        Span::raw(" Send File 📤  "),
+        Span::raw(" 📤 Send File  "),
         Span::styled(" [F4] ", Style::default().fg(Color::Black).bg(Color::LightBlue).add_modifier(Modifier::BOLD)),
-        Span::raw(" Pull File 📥  "),
+        Span::raw(" 📥 Pull File  "),
         Span::styled(" [Esc] ", Style::default().fg(Color::Black).bg(Color::Red)),
-        Span::raw(" Quit "),
+        Span::raw(" ✖ Quit "),
     ]);
     frame.render_widget(Paragraph::new(shortcuts), chunks[3]);
 
