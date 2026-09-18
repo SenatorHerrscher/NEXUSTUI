@@ -165,22 +165,21 @@ cargo run --release
 
 ---
 
-## 📦 System-Wide Installation
+## 🖥️ Desktop Application Installation (KDE Plasma / Application Menu)
 
-To install `nexustui` as a global command accessible from any terminal window:
+To install NexusTUI as a standalone desktop application with an app icon in your KDE Kickoff / Rofi / search menu:
 
 ```bash
-cargo install --path tui
-```
-Or symlink the release binary into your local bin:
-```bash
-ln -sf $(pwd)/target/release/nexustui ~/.local/bin/nexustui
+./install.sh
 ```
 
-Now you can simply run:
-```bash
-nexustui
-```
+This automatically:
+* Compiles the optimized release binary to `~/.local/bin/nexustui`.
+* Installs the high-resolution vector SVG and PNG cyberpunk icons to `~/.local/share/icons/hicolor/`.
+* Registers `nexustui.desktop` in `~/.local/share/applications/` and updates the desktop database.
+* Configures a dedicated window launcher that auto-starts the backend and opens NexusTUI without requiring a terminal shell prompt.
+
+You can now search for **NexusTUI** with `Super`, launch it from your application menu, or pin it to your taskbar!
 
 ---
 

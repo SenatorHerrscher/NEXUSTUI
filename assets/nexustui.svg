@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e17"/>
+      <stop offset="50%" stop-color="#111927"/>
+      <stop offset="100%" stop-color="#070a10"/>
+    </linearGradient>
+    <linearGradient id="neonCyanGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00FFA3"/>
+      <stop offset="50%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#7B2CBF"/>
+    </linearGradient>
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00FFA3"/>
+      <stop offset="100%" stop-color="#00D2FF"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="24" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Background -->
+  <rect x="24" y="24" width="464" height="464" rx="104" fill="url(#bgGrad)" stroke="url(#neonCyanGreen)" stroke-width="8" stroke-opacity="0.8"/>
+
+  <!-- Cyberpunk Tech Grid Lines -->
+  <path d="M 64 256 L 140 256 M 372 256 L 448 256" stroke="#00E5FF" stroke-width="4" stroke-opacity="0.3" stroke-linecap="round"/>
+  <path d="M 256 64 L 256 140 M 256 372 L 256 448" stroke="#00FFA3" stroke-width="4" stroke-opacity="0.3" stroke-linecap="round"/>
+  
+  <!-- Outer Wireless Signal Rings -->
+  <circle cx="256" cy="256" r="170" fill="none" stroke="#00E5FF" stroke-width="4" stroke-dasharray="16 12" stroke-opacity="0.35"/>
+  <circle cx="256" cy="256" r="130" fill="none" stroke="#00FFA3" stroke-width="4" stroke-dasharray="8 8" stroke-opacity="0.45"/>
+
+  <!-- Central Glow Ambient -->
+  <circle cx="256" cy="256" r="85" fill="#00E5FF" fill-opacity="0.12" filter="url(#softGlow)"/>
+
+  <!-- Iconic Lightning Bolt -->
+  <polygon points="275,80 155,270 245,270 215,432 355,230 265,230"
+           fill="url(#boltGrad)"
+           filter="url(#glow)"/>
+
+  <!-- Center Core Accent Dots -->
+  <circle cx="155" cy="256" r="6" fill="#00FFA3"/>
+  <circle cx="357" cy="256" r="6" fill="#00E5FF"/>
+</svg>

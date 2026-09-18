@@ -1,0 +1,22 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=NexusTUI
+GenericName=LAN Hub & Wireless Mirror
+Comment=Zero-GUI Local Network Hub, Wireless Mirroring & File Transfers
+Exec=/home/senatorherscher/.local/bin/nexustui-app
+Icon=nexustui
+Terminal=false
+Categories=Utility;Network;
+StartupNotify=true
+StartupWMClass=nexustui
+Keywords=lan;hub;mirror;scrcpy;android;tui;kde;connect;
+Actions=Mirror;Pull;
+
+[Desktop Action Mirror]
+Name=Launch Wireless Mirror (F2)
+Exec=/home/senatorherscher/.local/bin/nexustui-app
+
+[Desktop Action Pull]
+Name=Pull Files from Phone (F4)
+Exec=/home/senatorherscher/.local/bin/nexustui-app

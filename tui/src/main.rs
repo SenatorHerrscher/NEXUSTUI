@@ -119,6 +119,10 @@ fn ensure_go_server_running() {
     let candidates = [
         ("server/nexustui-server", "server"),
         ("../server/nexustui-server", "../server"),
+        (
+            "/home/senatorherscher/Documents/Codes/DenemeProjelerim/NexusTUI/server/nexustui-server",
+            "/home/senatorherscher/Documents/Codes/DenemeProjelerim/NexusTUI/server",
+        ),
     ];
 
     for (bin, dir) in &candidates {
@@ -135,7 +139,11 @@ fn ensure_go_server_running() {
         }
     }
 
-    let fallback_dirs = ["server", "../server"];
+    let fallback_dirs = [
+        "server",
+        "../server",
+        "/home/senatorherscher/Documents/Codes/DenemeProjelerim/NexusTUI/server",
+    ];
     for dir in &fallback_dirs {
         if Path::new(dir).exists() {
             let _ = Command::new("go")
