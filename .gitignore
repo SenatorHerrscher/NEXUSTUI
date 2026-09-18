@@ -1,0 +1,20 @@
+# Rust build artifacts
+/target
+**/target
+**/*.rs.bk
+
+# Go build artifacts
+/server/nexustui-server
+server/nexustui-server
+
+# Environment & Config
+.env
+*.env.local
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nexustui_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: nexustui_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - nexustui_db_data:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: nexustui_server
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: root
+      DB_PASSWORD: 12345
+      DB_NAME: nexustui_db
+
+volumes:
+  nexustui_db_data:
