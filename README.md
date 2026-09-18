@@ -17,7 +17,7 @@
 
 <br />
 
-<img src="assets/demo.png" alt="NexusTUI Live Demo" width="940" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+<img src="assets/showcase.png" alt="NexusTUI Live Demo" width="940" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
 
 *NexusTUI running on Linux CachyOS (Wayland) alongside a low-latency 60 FPS H.265 wireless mirror of a Xiaomi Mi 11 Lite with physical screen powered off.*
 
@@ -190,9 +190,11 @@ You can now search for **NexusTUI** with `Super`, launch it from your applicatio
 ```text
 NEXUSTUI/
 ├── assets/                 # Showcase screenshots & demo media
-│   ├── demo.png
+│   ├── showcase.png
 │   ├── db_devices.png
-│   └── db_messages.png
+│   ├── db_messages.png
+│   ├── nexustui.svg
+│   └── nexustui.png
 ├── docker-compose.yaml     # Production PostgreSQL 16 & Server container stack
 ├── Cargo.toml              # Root Cargo Workspace manifest
 ├── LICENSE                 # MIT License
